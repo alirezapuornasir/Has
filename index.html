@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#11101a">
+  <meta name="description" content="ریاضی‌یار هشتم؛ درس‌نامه، حفظیات، بانک سؤال و آزمون‌های ریاضی پایه هشتم">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>ریاضی‌یار ۸ | دستیار مطالعه و آزمون</title>
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="assets/icon.svg" alt="نشان ریاضی‌یار" class="brand-icon">
+        <div><strong>ریاضی‌یار <span>۸</span></strong><small>دستیار مطالعه و آزمون</small></div>
+      </div>
+      <div class="side-label">فضای مطالعه</div>
+      <nav class="main-nav" aria-label="ناوبری اصلی">
+        <button class="nav-item active" data-view="home"><span class="nav-symbol">⌂</span>داشبورد</button>
+        <button class="nav-item" data-view="lessons"><span class="nav-symbol">▤</span>درس‌نامه‌ها</button>
+        <button class="nav-item" data-view="memorise"><span class="nav-symbol">✦</span>حفظیات و فرمول‌ها</button>
+        <button class="nav-item" data-view="exams"><span class="nav-symbol">◈</span>آزمون‌ها</button>
+        <button class="nav-item" data-view="bank"><span class="nav-symbol">▦</span>بانک سؤال</button>
+        <button class="nav-item" data-view="videos"><span class="nav-symbol">▷</span>فیلم‌های آموزشی</button>
+        <button class="nav-item" data-view="book"><span class="nav-symbol">▧</span>کتاب PDF</button>
+        <button class="nav-item" data-view="progress"><span class="nav-symbol">◔</span>عملکرد من</button>
+      </nav>
+      <div class="side-label chapter-label">انتخاب فصل برای آزمون</div>
+      <div class="chapter-toggles" id="chapterToggles"></div>
+      <div class="sidebar-footer"><span class="status-dot"></span> قابل استفاده به‌صورت آفلاین پس از بارگذاری اولیه</div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="باز کردن فهرست">☰</button>
+        <div class="crumbs"><span>ریاضی</span><i>›</i><b id="pageTitle">داشبورد</b></div>
+        <div class="top-actions">
+          <span class="edition-pill">پایه هشتم · ۹ فصل</span>
+          <button class="icon-btn" id="installBtn" hidden title="نصب برنامه">＋ نصب</button>
+        </div>
+      </header>
+      <div id="viewRoot" class="view-root" aria-live="polite"></div>
+      <footer class="app-footer"><span>ریاضی‌یار ۸</span><span>نسخه ۱.۰ · محتوای آموزشی و آزمون‌های تمرینی</span></footer>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <input id="pdfPicker" type="file" accept="application/pdf,.pdf" hidden>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
