@@ -1,0 +1,163 @@
+name: Extract uploaded ZIP
+
+on:
+  push:
+    paths:
+      - 'math8_pro.zip'
+  workflow_dispatch:
+    inputs:
+      zip_path:
+        description: 'مسیر فایل ZIP داخل مخزن'
+        required: false
+        default: 'math8_pro.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: دریافت مخزن
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: استخراج امن فایل ZIP
+        env:
+          ZIP_PATH_INPUT: ${{ inputs.zip_path }}
+        run: |
+          set -euo pipefail
+
+          ZIP_PATH="${ZIP_PATH_INPUT:-math8_pro.zip}"
+
+          if [ ! -f "$ZIP_PATH" ]; then
+            echo "فایل ZIP پیدا نشد: $ZIP_PATH"
+            exit 1
+          fi
+
+          python - "$ZIP_PATH" <<'PY'
+          import os
+          import stat
+          import sys
+          import zipfile
+          from pathlib import PurePosixPath
+
+          archive = sys.argv[1]
+          repo = os.path.realpath('.')
+
+          with zipfile.ZipFile(archive) as zf:
+
+              bad = zf.testzip()
+
+              if bad:
+                  raise SystemExit(
+                      f'ZIP خراب است: {bad}'
+                  )
+
+              entries = [
+                  i for i in zf.infolist()
+                  if not i.is_dir()
+              ]
+
+              if not entries:
+                  raise SystemExit('ZIP خالی است.')
+
+              parts_list = [
+                  PurePosixPath(i.filename).parts
+                  for i in entries
+              ]
+
+              first_parts = {
+                  p[0] for p in parts_list if p
+              }
+
+              strip_root = (
+                  len(first_parts) == 1
+                  and all(len(p) > 1 for p in parts_list)
+              )
+
+              common_root = (
+                  next(iter(first_parts))
+                  if strip_root else None
+              )
+
+              extracted = 0
+
+              for info in entries:
+
+                  raw = info.filename.replace('\\', '/')
+                  path = PurePosixPath(raw)
+
+                  if (
+                      path.is_absolute()
+                      or '..' in path.parts
+                      or not path.parts
+                  ):
+                      raise SystemExit(
+                          f'مسیر ناامن: {info.filename}'
+                      )
+
+                  if common_root and path.parts[0] == common_root:
+                      path = PurePosixPath(*path.parts[1:])
+
+                  if not path.parts:
+                      continue
+
+                  if path.parts[0] == '.git':
+                      continue
+
+                  if (
+                      len(path.parts) >= 2
+                      and path.parts[:2] == ('.github', 'workflows')
+                  ):
+                      continue
+
+                  mode = (info.external_attr >> 16) & 0xFFFF
+
+                  if stat.S_ISLNK(mode):
+                      raise SystemExit(
+                          f'لینک نمادین مجاز نیست: {info.filename}'
+                      )
+
+                  destination = os.path.realpath(
+                      os.path.join(repo, *path.parts)
+                  )
+
+                  if os.path.commonpath(
+                      [repo, destination]
+                  ) != repo:
+                      raise SystemExit('مسیر خروجی ناامن است.')
+
+                  os.makedirs(
+                      os.path.dirname(destination),
+                      exist_ok=True
+                  )
+
+                  with zf.open(info) as source:
+                      with open(destination, 'wb') as target:
+                          target.write(source.read())
+
+                  extracted += 1
+
+          print(f'{extracted} فایل استخراج شد.')
+          PY
+
+      - name: ثبت تغییرات در GitHub
+        run: |
+          set -euo pipefail
+
+          git config user.name 'github-actions[bot]'
+
+          git config user.email \
+            '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo 'تغییری وجود ندارد.'
+          else
+            git commit -m 'Extract uploaded math8_pro ZIP'
+            git push
+          fi
